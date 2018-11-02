@@ -14,7 +14,7 @@ class Board extends React.Component {
 
   renderSquare(i) {
     return <Square value={this.props.squares[i]}
-                  onClick={() => this.props.handleClick(i)}/>;
+                  onClick={() => this.props.onClick(i)}/>;
   }
 
   render() {
@@ -44,7 +44,7 @@ class Game extends React.Component {
 
   handleClick(i)
   {
-    const history = this.state.history;
+    const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
     if (calculateWinner(squares) || squares[i]) {
@@ -53,6 +53,7 @@ class Game extends React.Component {
     squares[i] = this.state.xIsNext ? 'X' : 'O';
     this.setState({history: history.concat([{
                   squares: squares,}]),
+                  stepNumber: history.length,
                   xIsNext:!this.state.xIsNext,});
   }
   constructor(props) {
@@ -61,14 +62,23 @@ class Game extends React.Component {
       history: [{
         squares: Array(9).fill(null),
       }],
+      stepNumber: 0,
       xIsNext: true,
     };
   }
+
+  jumpTo(step) {
+    this.setState({
+      stepNumber: step,
+      xIsNext: (step % 2) === 0,
+    });
+  }
   render() {
     const history = this.state.history;
-    const current = history[history.length - 1];
+    const current = history[this.state.stepNumber];
     const winner = calculateWinner(current.squares);
 
+    //this renders the history that is displayed to the player
     const moves = history.map((step, move) => {
           const desc = move ?
             'Go to move #' + move :
@@ -90,8 +100,8 @@ class Game extends React.Component {
       <div className="game">
         <div className="game-board">
           <Board
-            squares={current.squares}
-            onClick={(i) => this.handleClick(i)}
+            squares={current.squares} //passes the states of the squares
+            onClick={(i) => this.handleClick(i)} //pass function down to lower components, this is neccessary for some reason
           />
         </div>
         <div className="game-info">
